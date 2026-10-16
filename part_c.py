@@ -51,8 +51,9 @@ def validate_reply(text):
         if len(matches) == 1:
             return "classified_keyword", matches[0]
         return "flagged_invalid_output", ""
-    if isinstance(parsed, dict) and parsed.get("category") in ALLOWED:
-        return "classified_json", parsed["category"]
+    category = parsed.get("category") if isinstance(parsed, dict) else None
+    if isinstance(category, str) and category in ALLOWED:
+        return "classified_json", category
     return "flagged_invalid_output", ""
 
 

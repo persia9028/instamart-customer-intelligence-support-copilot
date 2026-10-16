@@ -112,12 +112,45 @@ def _write_ledger(tool_name, order_id, refund_inr):
     return {"refund_inr": round(float(refund_inr), 2)}
 
 
+def _validated_refund_amount(order_id, refund_inr):
+    with sqlite3.connect(DB) as con:
+        row = con.execute(
+            "SELECT status, order_amount, delivery_minutes FROM orders WHERE order_id=?",
+            (order_id,),
+        ).fetchone()
+    if row is None:
+        return None, "order not found"
+    status, order_amount, delivery_minutes = row
+    if status != "completed":
+        return None, "order is not completed"
+    if delivery_minutes is None or float(delivery_minutes) <= 45:
+        return None, "order is not eligible for a late-delivery refund"
+    expected = round(float(order_amount), 2)
+    try:
+        requested = float(refund_inr)
+    except (TypeError, ValueError, OverflowError):
+        return None, "refund amount is invalid"
+    if not np.isfinite(requested) or abs(requested - expected) > 0.01:
+        return None, "refund amount does not match the eligible order amount"
+    return expected, None
+
+
 def issue_refund(order_id, refund_inr):
-    return _write_ledger("issue_refund", order_id, refund_inr)
+    eligible, error = _validated_refund_amount(order_id, refund_inr)
+    if error:
+        return {"error": error}
+    if eligible > 1000:
+        return {"error": "refund requires human support lead approval"}
+    return _write_ledger("issue_refund", order_id, eligible)
 
 
 def escalate_to_human(order_id, refund_inr):
-    return _write_ledger("escalate_to_human", order_id, refund_inr)
+    eligible, error = _validated_refund_amount(order_id, refund_inr)
+    if error:
+        return {"error": error}
+    if eligible <= 1000:
+        return {"error": "refund is within the automatic approval limit"}
+    return _write_ledger("escalate_to_human", order_id, eligible)
 
 
 TOOLS_SPEC = [

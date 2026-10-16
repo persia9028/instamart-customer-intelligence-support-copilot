@@ -137,7 +137,7 @@ The cohort includes customers with at least one completed order before 2025-09-0
 | Logistic regression | C ∈ {0.01, 0.1, 1, 10, 100}; best C=100 | 0.651 | [[111, 32], [31, 58]] | 0.644 | 0.652 | 0.648 |
 | Random forest | depth ∈ {3,5,8}, leaf ∈ {5,10,20}; best depth=8, leaf=10 | 0.681 | [[113, 30], [31, 58]] | 0.659 | 0.652 | 0.655 |
 
-The frequency scaler mean is 8.115 on training rows, versus 8.029 for the full cohort, because the stratified sample is a subset and its realized mean differs slightly. Logistic regression was selected for its simpler explanation while remaining close to the forest’s test F1. Missing a lapsing customer loses a chance to retain them; wrongly targeting a loyal customer wastes incentive budget, so the team should weigh recall and precision together and select campaign thresholds with costs in mind.
+The frequency scaler mean is 8.115 on training rows, versus 8.029 for the full cohort, because the stratified sample is a subset and its realized mean differs slightly. Logistic regression was selected because its explanation is simpler and its test F1 (0.648) is close to the forest’s (0.655). Missing a lapsing customer loses a chance to retain them, while wrongly targeting a loyal customer wastes incentive budget. The test set does not encode those business costs, so the retention team should choose a decision threshold using the cost of a missed lapse and an unnecessary offer.
 
 Oversampling used training rows only, preserving the original training rows and adding lapsed duplicates to balance both classes at 570. On the unchanged test set, logistic regression precision/recall/F1 changed from 0.644/0.652/0.648 to 0.589/0.854/0.697. Recall moved most, rising by about 0.202, while precision fell slightly; this finds more likely lapsers at the cost of more false-positive campaigns.
 
@@ -182,7 +182,7 @@ Without overlap, “What delivery time makes a completed order eligible for a fu
 
 ### Refund agent
 
-The agent exposes five tools through `TOOLS_SPEC` and `TOOL_MAP`: `get_order`, `search_policy`, `calculate_refund`, `issue_refund`, and `escalate_to_human`. Refunds apply only to completed orders delivered over 45 minutes; eligible amounts above INR 1,000 are escalated instead of issued. Seven supplied scenarios:
+The agent exposes five tools through `TOOLS_SPEC` and `TOOL_MAP`: `get_order`, `search_policy`, `calculate_refund`, `issue_refund`, and `escalate_to_human`. Refunds apply only to completed orders delivered over 45 minutes; eligible amounts above INR 1,000 are escalated instead of issued. The ledger tools recheck order eligibility and the requested amount; automatic issue blocks amounts above INR 1,000, while escalation records eligible amounts above that limit. Seven supplied scenarios:
 
 | Scenario | Status | Refund amount (INR) | Model calls | Tokens |
 |---|---|---:|---:|---:|
