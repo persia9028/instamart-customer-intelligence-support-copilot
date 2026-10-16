@@ -163,7 +163,7 @@ Zero-shot confusion table (true category by predicted category; accepted outputs
 | fraud | 11 | 0 | 23 | 0 |
 | technical | 10 | 0 | 0 | 29 |
 
-Few-shot costs 9,984 additional tokens, about 68 more per accepted ticket, and prevents 21 zero-shot classification errors in this deterministic run. That extra cost is worth paying for fraud and technical tickets because the zero-shot mistakes route 11 fraud and 10 technical cases into billing. Invalid replies, empty/long tickets, and budget-exhausted tickets are rule-routed to human review; accepted fraud cases go to the security team, Premium customers to the premium desk, and other cases to support.
+Few-shot used 20,320 tokens versus 10,336 for zero-shot, an extra 9,984 tokens or about 68 more per accepted ticket. It corrected all 21 zero-shot errors, raising accuracy from 85.7% (126/147) to 100% (147/147); those errors were 11 fraud and 10 technical tickets labeled billing. The extra cost is worth paying when the cost of misrouting those fraud and technical cases exceeds about 68 additional tokens per accepted ticket. Invalid replies, empty/long tickets, and budget-exhausted tickets are rule-routed to human review; accepted fraud cases go to the security team, Premium customers to the premium desk, and other cases to support.
 
 The zero-shot budget demonstration used 6,000 tokens and stopped 65 tickets as `budget_exhausted` after the running total reached 6,036; the budget is checked before each call, so the last accepted call can cross the threshold. `outputs/triage_results.csv` is the 164-row few-shot run with budget 100,000 and segment-based routing. `outputs/triage_budget_demo.csv` contains the budget demonstration.
 
