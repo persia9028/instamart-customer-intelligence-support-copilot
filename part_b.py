@@ -15,7 +15,6 @@ from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.linear_model import LogisticRegression
-from scipy import sparse
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data" / "clean"
@@ -111,7 +110,7 @@ def main():
     print("SPLIT:", len(X_train), len(X_test))
     baseline = np.zeros(len(y_test), dtype=int)
     print("BASELINE:", json.dumps({"accuracy": float(accuracy_score(y_test, baseline)), **metric_dict(y_test, baseline)}))
-    prep = ColumnTransformer([("num", StandardScaler(), NUMERIC), ("cat", OneHotEncoder(drop="first", handle_unknown="ignore"), CATEGORICAL)])
+    prep = ColumnTransformer([("num", StandardScaler(), NUMERIC), ("cat", OneHotEncoder(drop="first", handle_unknown="ignore"), CATEGORICAL)], sparse_threshold=0)
     logit = Pipeline([("prep", prep), ("model", LogisticRegression(max_iter=1000))])
     grid_log = GridSearchCV(logit, {"model__C": [0.01, 0.1, 1, 10, 100]}, cv=5, scoring="f1", n_jobs=-1)
     grid_log.fit(X_train, y_train)
@@ -132,10 +131,7 @@ def main():
     rng = np.random.RandomState(42)
     minority_ids = np.flatnonzero(y_train.to_numpy() == 1)
     extra = rng.choice(minority_ids, size=int(counts[0] - counts[1]), replace=True)
-    if sparse.issparse(transformed_train):
-        train_balanced = sparse.vstack([transformed_train, transformed_train[extra]])
-    else:
-        train_balanced = np.concatenate([transformed_train, transformed_train[extra]], axis=0)
+    train_balanced = np.concatenate([transformed_train, transformed_train[extra]], axis=0)
     y_balanced = np.concatenate([y_train.to_numpy(), y_train.to_numpy()[extra]])
     balanced_model = LogisticRegression(max_iter=1000, C=best_log.named_steps["model"].C).fit(train_balanced, y_balanced)
     balanced_pred = balanced_model.predict(best_log.named_steps["prep"].transform(X_test))

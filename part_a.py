@@ -25,12 +25,12 @@ def audit():
         "pending_rows": int(orders.status.eq("pending").sum()), "distinct_order_ids": int(orders.order_id.nunique()),
         "non_numeric_amounts": int(pd.to_numeric(orders.order_amount, errors="coerce").isna().sum()),
         "negative_delivery_minutes": int(pd.to_numeric(orders.delivery_minutes, errors="coerce").lt(0).sum()),
-        "blank_delivery_minutes": int(orders.delivery_minutes.eq("").sum()),
-        "blank_age": int(customers.age.eq("").sum()),
+        "blank_delivery_minutes": int(orders.delivery_minutes.isna().sum()),
+        "blank_age": int(customers.age.isna().sum()),
         "ages_outside_10_100": int((pd.to_numeric(customers.age, errors="coerce").notna() & ~pd.to_numeric(customers.age, errors="coerce").between(10, 100)).sum()),
         "raw_city_spellings": int(customers.city.nunique()),
         "raw_gender_spellings_nonblank": int(customers.loc[customers.gender.ne(""), "gender"].nunique()),
-        "blank_gender": int(customers.gender.eq("").sum()),
+        "blank_gender": int(customers.gender.isna().sum()),
     }
     print("\nAUDIT CHECKPOINTS")
     for key, value in figures.items():

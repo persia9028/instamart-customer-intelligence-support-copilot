@@ -20,7 +20,7 @@ Run these commands from the repository root in a POSIX shell. Python 3.11 or new
 8. `python part_c.py`
 9. `python part_d.py`
 
-On Windows PowerShell, activate the environment with `\.venv\Scripts\Activate.ps1` and then use the same `python` commands. The generator's final line is `generated: customers=1200 products=40 orders_raw=13084 tickets=164`. The project scripts create their output directories and overwrite reproducible derived files. `part_c.py` prints retry lines while it runs.
+On Windows PowerShell, activate the environment with `.\.venv\Scripts\Activate.ps1` and then use the same `python` commands. The generator's final line is `generated: customers=1200 products=40 orders_raw=13084 tickets=164`. The project scripts create their output directories and overwrite reproducible derived files. `part_c.py` prints retry lines while it runs.
 
 ## Part A
 
