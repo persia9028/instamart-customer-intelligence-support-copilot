@@ -1,7 +1,9 @@
 """Part A: audit, clean, store and analyse the synthetic Instamart exports."""
 from pathlib import Path
 import json
+import os
 import sqlite3
+import tempfile
 
 import numpy as np
 import pandas as pd
@@ -95,9 +97,19 @@ def clean():
     CLEAN.mkdir(parents=True, exist_ok=True)
     for name, frame in (("customers", customers), ("products", products), ("orders", orders)):
         frame.to_csv(CLEAN / f"{name}.csv", index=False)
-    with sqlite3.connect(DB) as con:
-        for name, frame in (("customers", customers), ("products", products), ("orders", orders)):
-            frame.to_sql(name, con, if_exists="replace", index=False)
+    with tempfile.NamedTemporaryFile(dir=DB.parent, suffix=".db", delete=False) as tmp:
+        temp_db = Path(tmp.name)
+    try:
+        con = sqlite3.connect(temp_db)
+        try:
+            with con:
+                for name, frame in (("customers", customers), ("products", products), ("orders", orders)):
+                    frame.to_sql(name, con, if_exists="replace", index=False)
+        finally:
+            con.close()
+        os.replace(temp_db, DB)
+    finally:
+        temp_db.unlink(missing_ok=True)
     return customers, products, orders
 
 
